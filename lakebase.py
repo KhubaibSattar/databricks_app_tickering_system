@@ -8,6 +8,7 @@ This keeps setup to a single secret instead of five separate env vars.
 """
 
 import base64
+import logging
 import os
 from contextlib import contextmanager
 
@@ -15,6 +16,8 @@ import psycopg2
 from databricks.sdk import WorkspaceClient
 from psycopg2.extras import RealDictCursor
 from sqlalchemy import create_engine
+
+logger = logging.getLogger(__name__)
 
 _w = WorkspaceClient()
 
@@ -34,6 +37,11 @@ def get_connection():
     conn = psycopg2.connect(_lakebase_url(), cursor_factory=RealDictCursor)
     try:
         yield conn
+    except Exception as e:
+        # Rollback on error to ensure clean state
+        conn.rollback()
+        logger.error(f"Database operation failed, rolling back: {e}")
+        raise
     finally:
         conn.close()
 
@@ -56,5 +64,7 @@ def run_write(sql: str, params: tuple | dict | None = None) -> int:
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, params)
+            affected_rows = cur.rowcount
             conn.commit()
-            return cur.rowcount
+            logger.info(f"Database write committed successfully. Rows affected: {affected_rows}")
+            return affected_rows

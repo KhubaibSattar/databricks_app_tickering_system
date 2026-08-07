@@ -4,12 +4,10 @@ command:
 
 env:
   - name: LAKEBASE_SECRET_SCOPE
-    value: "database"
+    value: "database-hw1"
   - name: LAKEBASE_SECRET_KEY
-    value: "lakebase-url"
-  - name: MASSIVE_API_BASE_URL
-    value: "https://api.massive.com"
-  - name: MASSIVE_SECRET_SCOPE
-    value: "massive"
-  - name: MASSIVE_SECRET_KEY
-    value: "api-key"
+    value: "lakebase-ticketing-url"
+  - name: TICKETS_TABLE_NAME
+    value: "tickets"
+  - name: MESSAGES_TABLE_NAME
+    value: "ticket_messages"

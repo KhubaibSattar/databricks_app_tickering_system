@@ -2,97 +2,892 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Massive Stock Watchlist</title>
+  <title>Ticketing System</title>
   <style>
-    body { font-family: -apple-system, Arial, sans-serif; max-width: 560px; margin: 60px auto; color: #222; }
-    h1 { font-size: 20px; }
-    label { display: block; margin-top: 16px; font-weight: 600; }
-    input[type="text"] { width: 100%; padding: 8px; margin-top: 6px; box-sizing: border-box; }
-    button { margin-top: 16px; padding: 8px 16px; cursor: pointer; }
-    #result { margin-top: 20px; white-space: pre-wrap; background: #f6f6f6; padding: 12px; border-radius: 6px; min-height: 20px; }
-    .hint { color: #777; font-size: 13px; margin-top: 4px; }
-    table { width: 100%; margin-top: 24px; border-collapse: collapse; }
-    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
-    th { font-size: 13px; color: #555; text-transform: uppercase; }
+    :root {
+      /* Dark Mode Elegant Palette */
+      --bg-canvas: #0F0F0F;
+      --bg-surface: #1A1A1A;
+      --bg-elevated: #222222;
+      --bg-hover: #2A2A2A;
+      --border: #333333;
+      --border-subtle: #282828;
+      --text-primary: #E8E8E8;
+      --text-secondary: #A8A8A8;
+      --text-muted: #6B6B6B;
+      --accent: #5B7A6B;
+      --accent-hover: #6D8E7D;
+      --accent-light: rgba(91, 122, 107, 0.15);
+      
+      /* Status colors - Dark Mode */
+      --status-open: #7B91E8;
+      --status-open-bg: rgba(123, 145, 232, 0.15);
+      --status-progress: #D4AA52;
+      --status-progress-bg: rgba(212, 170, 82, 0.15);
+      --status-resolved: #6D8E7D;
+      --status-resolved-bg: rgba(109, 142, 125, 0.15);
+      --status-closed: #7B7A74;
+      --status-closed-bg: rgba(123, 122, 116, 0.15);
+      
+      /* Severity colors - Dark Mode */
+      --severity-low: #6D8E7D;
+      --severity-low-bg: rgba(109, 142, 125, 0.15);
+      --severity-medium: #D4AA52;
+      --severity-medium-bg: rgba(212, 170, 82, 0.15);
+      --severity-high: #CF6D64;
+      --severity-high-bg: rgba(207, 109, 100, 0.15);
+      --severity-critical: #E57A70;
+      --severity-critical-bg: rgba(229, 122, 112, 0.2);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background: var(--bg-canvas);
+      min-height: 100vh;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+    
+    /* Header - Sleek Dark */
+    .header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: none;
+    }
+    .header h1 { 
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
+    .header .subtitle { 
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-top: 4px;
+      line-height: 1.4;
+      font-weight: 400;
+    }
+    
+    /* Add Ticket Button - Sleek */
+    .add-ticket-btn {
+      padding: 9px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.01em;
+    }
+    .add-ticket-btn:hover { 
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(91, 122, 107, 0.3);
+    }
+    .add-ticket-btn:active { transform: translateY(0); }
+    .add-ticket-btn:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .add-ticket-btn:before { content: '+ '; font-size: 18px; font-weight: 300; }
+    
+    /* Main Content */
+    .container { max-width: 1400px; margin: 0 auto; padding: 40px; }
+    
+    /* Tickets Table - Dark Elegant */
+    .tickets-section {
+      background: var(--bg-surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .tickets-header {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: var(--bg-elevated);
+    }
+    .tickets-header h2 { 
+      font-size: 18px; 
+      color: var(--text-primary); 
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .filter-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .filter-select {
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      cursor: pointer;
+      min-width: 120px;
+      transition: all 200ms ease;
+    }
+    .filter-select:hover { 
+      border-color: var(--accent);
+      background: var(--bg-hover);
+    }
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+    .clear-filters-btn {
+      padding: 7px 14px;
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 200ms ease;
+      margin-top: 18px;
+    }
+    .clear-filters-btn:hover { 
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+    }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 14px 24px; }
+    th {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 500;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.05em;
+    }
+    td { 
+      font-size: 14px; 
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+    }
+    tbody tr {
+      transition: background 150ms ease;
+    }
+    tbody tr:hover { 
+      background: var(--bg-hover); 
+      cursor: pointer; 
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    
+    .ticket-id { font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .ticket-title { color: var(--text-primary); font-weight: 400; }
+    
+    /* Badges - Dark Mode */
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      text-align: center;
+      min-width: 80px;
+      letter-spacing: 0.01em;
+    }
+    .status-open { background: var(--status-open-bg); color: var(--status-open); }
+    .status-in-progress { background: var(--status-progress-bg); color: var(--status-progress); }
+    .status-resolved { background: var(--status-resolved-bg); color: var(--status-resolved); }
+    .status-closed { background: var(--status-closed-bg); color: var(--status-closed); }
+    .severity-low { background: var(--severity-low-bg); color: var(--severity-low); }
+    .severity-medium { background: var(--severity-medium-bg); color: var(--severity-medium); }
+    .severity-high { background: var(--severity-high-bg); color: var(--severity-high); }
+    .severity-critical { background: var(--severity-critical-bg); color: var(--severity-critical); font-weight: 600; }
+    
+    /* Modal - Dark Elegant */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      animation: fadeIn 0.2s;
+    }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    
+    .modal-content {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.3s;
+    }
+    
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 { 
+      font-size: 18px; 
+      color: var(--text-primary); 
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 200ms ease;
+    }
+    .close-btn:hover { 
+      background: var(--bg-hover); 
+      color: var(--text-primary);
+    }
+    
+    .modal-body { padding: 24px; }
+    
+    /* Form Styles - Dark Mode */
+    label {
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--text-secondary);
+      letter-spacing: -0.01em;
+    }
+    label:first-child { margin-top: 0; }
+    
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      transition: all 200ms ease;
+      font-family: inherit;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--bg-surface);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+    
+    .form-actions {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    .btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: -0.01em;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover { 
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(91, 122, 107, 0.3);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary {
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { 
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+    .btn-danger {
+      background: var(--severity-high);
+      color: white;
+    }
+    .btn-danger:hover { 
+      background: var(--severity-critical);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(207, 109, 100, 0.3);
+    }
+    .btn-danger:active { transform: translateY(0); }
+    
+    /* Alert - Dark Mode */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+      border: 1px solid;
+    }
+    .alert.show { display: block; animation: slideDown 0.3s; }
+    .alert.success { 
+      background: var(--status-resolved-bg); 
+      color: var(--status-resolved); 
+      border-color: var(--status-resolved);
+    }
+    .alert.error { 
+      background: var(--severity-high-bg); 
+      color: var(--severity-high); 
+      border-color: var(--severity-high);
+    }
+    
+    /* Empty State - Dark Mode */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state-text { font-size: 16px; margin-bottom: 8px; color: var(--text-secondary); }
+    .empty-state-subtext { font-size: 14px; }
+    
+    /* Action Button in Table - Sleek */
+    .action-btn {
+      padding: 6px 14px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 200ms ease;
+      letter-spacing: -0.01em;
+    }
+    .action-btn:hover { 
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(91, 122, 107, 0.3);
+    }
+    .action-btn:active { transform: translateY(0); }
+    
+
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
-  <h1>Stock Watchlist</h1>
-  <p class="hint">Enter a single ticker symbol. This sends exactly ONE call to the Massive API to fetch the latest price, then adds it to your watchlist.</p>
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>🎫 Ticketing System</h1>
+      <p class="subtitle">Manage and track support tickets</p>
+    </div>
+    <button class="add-ticket-btn" onclick="openModal()">Add Ticket</button>
+  </div>
 
-  <form id="stock-form">
-    <label for="symbol">Ticker symbol</label>
-    <input type="text" id="symbol" name="symbol" placeholder="AAPL" required>
-    <button type="submit">Add to watchlist</button>
-  </form>
+  <!-- Main Content -->
+  <div class="container">
+    <div class="tickets-section">
+      <div class="tickets-header">
+        <h2>All Tickets</h2>
+        <div class="filters">
+          <div class="filter-group">
+            <label class="filter-label">Status</label>
+            <select id="filter-status" class="filter-select" onchange="applyFilters()">
+              <option value="">All Statuses</option>
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Severity</label>
+            <select id="filter-severity" class="filter-select" onchange="applyFilters()">
+              <option value="">All Severities</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Escalation</label>
+            <select id="filter-escalation" class="filter-select" onchange="applyFilters()">
+              <option value="">All Levels</option>
+              <option value="0">Level 0</option>
+              <option value="1">Level 1</option>
+              <option value="2">Level 2</option>
+              <option value="3">Level 3</option>
+              <option value="4">Level 4</option>
+              <option value="5">Level 5</option>
+            </select>
+          </div>
+          <button class="clear-filters-btn" onclick="clearFilters()">Clear Filters</button>
+        </div>
+      </div>
+      <div id="tickets-container">
+        <table id="tickets-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Severity</th>
+              <th>Escalation</th>
+              <th>Created By</th>
+              <th>Created At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tickets-body">
+            <tr><td colspan="7" style="text-align: center; color: #999; padding: 40px;">Loading tickets...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-  <div id="result"></div>
+  <!-- Modal for Adding Ticket -->
+  <div class="modal" id="ticketModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create New Ticket</h2>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-alert" class="alert"></div>
+        
+        <form id="ticket-form">
+          <label for="title">Ticket Title*</label>
+          <input type="text" id="title" name="title" placeholder="Brief description of the issue" required>
 
-  <table id="watchlist-table">
-    <thead>
-      <tr>
-        <th>Symbol</th>
-        <th>Email</th>
-        <th>Latest price</th>
-        <th>Updated</th>
-      </tr>
-    </thead>
-    <tbody id="watchlist-body"></tbody>
-  </table>
+          <label for="description">Description</label>
+          <textarea id="description" name="description" placeholder="Detailed description of the ticket"></textarea>
+
+          <label for="status">Status</label>
+          <select id="status" name="status">
+            <option value="Open" selected>Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+
+          <label for="severity">Severity</label>
+          <select id="severity" name="severity">
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+
+          <label for="escalation">Escalation Level</label>
+          <input type="number" id="escalation" name="escalation" value="0" min="0" max="5">
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button type="submit" id="create-btn" class="btn btn-primary">Create Ticket</button>
+            <button type="button" id="update-btn" class="btn btn-primary" style="display: none;" onclick="updateTicket()">Update Ticket</button>
+            <button type="button" id="delete-btn" class="btn btn-danger" style="display: none;" onclick="deleteTicket()">Delete Ticket</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const form = document.getElementById("stock-form");
-    const resultEl = document.getElementById("result");
-    const watchlistBody = document.getElementById("watchlist-body");
+    const modal = document.getElementById("ticketModal");
+    const form = document.getElementById("ticket-form");
+    const alertEl = document.getElementById("modal-alert");
+    const ticketsBody = document.getElementById("tickets-body");
+    const createBtn = document.getElementById("create-btn");
+    const updateBtn = document.getElementById("update-btn");
+    const deleteBtn = document.getElementById("delete-btn");
+    const modalTitle = document.querySelector(".modal-header h2");
 
-    async function loadWatchlist() {
-      try {
-        const resp = await fetch("/watchlist");
-        const data = await resp.json();
-        if (!resp.ok) {
-          resultEl.textContent = "Error loading watchlist: " + (data.error || resp.statusText);
-          return;
-        }
-        watchlistBody.innerHTML = "";
-        data.forEach((row) => {
-          const tr = document.createElement("tr");
-          const price = row.latest_price !== null && row.latest_price !== undefined
-            ? Number(row.latest_price).toFixed(2)
-            : "-";
-          const updated = row.updated_at ? new Date(row.updated_at).toLocaleString() : "-";
-          tr.innerHTML = `<td>${row.symbol}</td><td>${row.email || "-"}</td><td>${price}</td><td>${updated}</td>`;
-          watchlistBody.appendChild(tr);
-        });
-      } catch (err) {
-        resultEl.textContent = "Failed to load watchlist: " + err;
-      }
+    let currentTicketId = null; // Track which ticket is being edited
+    let allTickets = []; // Store all tickets for easy lookup
+    
+    // Filter state
+    const filters = {
+      status: '',
+      severity: '',
+      escalation: ''
+    };
+
+    // Open Modal for creating a new ticket
+    function openModal() {
+      currentTicketId = null;
+      modalTitle.textContent = "Create New Ticket";
+      form.reset();
+      createBtn.style.display = "inline-block";
+      updateBtn.style.display = "none";
+      deleteBtn.style.display = "none";
+      modal.classList.add("show");
+      document.getElementById("title").focus();
     }
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const symbol = document.getElementById("symbol").value;
-      resultEl.textContent = "Adding to watchlist...";
+    // Open Modal for editing an existing ticket
+    function openEditModal(ticket) {
+      currentTicketId = ticket.ticket_id;
+      modalTitle.textContent = `Edit Ticket #${ticket.ticket_id}`;
+      
+      // Pre-populate form fields
+      document.getElementById("title").value = ticket.title;
+      document.getElementById("description").value = ticket.description || "";
+      document.getElementById("status").value = ticket.status;
+      document.getElementById("severity").value = ticket.severity;
+      document.getElementById("escalation").value = ticket.escalation;
+      
+      // Show update/delete buttons, hide create button
+      createBtn.style.display = "none";
+      updateBtn.style.display = "inline-block";
+      deleteBtn.style.display = "inline-block";
+      
+      modal.classList.add("show");
+      document.getElementById("title").focus();
+    }
 
-      try {
-        const resp = await fetch("/watchlist", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ symbol }),
-        });
-        const data = await resp.json();
-        if (!resp.ok) {
-          resultEl.textContent = "Error: " + (data.error || resp.statusText);
-          return;
-        }
-        resultEl.textContent = "Added " + data.symbol + " at price " + data.latest_price;
-        document.getElementById("symbol").value = "";
-        loadWatchlist();
-      } catch (err) {
-        resultEl.textContent = "Request failed: " + err;
+    // Close Modal
+    function closeModal() {
+      modal.classList.remove("show");
+      form.reset();
+      alertEl.className = "alert";
+      alertEl.textContent = "";
+    }
+
+    // Close modal when clicking outside
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Close modal with Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.classList.contains("show")) {
+        closeModal();
       }
     });
 
-    loadWatchlist();
+    // Apply filters to tickets
+    function applyFilters() {
+      filters.status = document.getElementById('filter-status').value;
+      filters.severity = document.getElementById('filter-severity').value;
+      filters.escalation = document.getElementById('filter-escalation').value;
+      renderTickets();
+    }
+    
+    // Clear all filters
+    function clearFilters() {
+      document.getElementById('filter-status').value = '';
+      document.getElementById('filter-severity').value = '';
+      document.getElementById('filter-escalation').value = '';
+      filters.status = '';
+      filters.severity = '';
+      filters.escalation = '';
+      renderTickets();
+    }
+    
+    // Render tickets based on current filters
+    function renderTickets() {
+      // Filter tickets based on current filter values
+      let filteredTickets = allTickets;
+      
+      if (filters.status) {
+        filteredTickets = filteredTickets.filter(t => t.status === filters.status);
+      }
+      if (filters.severity) {
+        filteredTickets = filteredTickets.filter(t => t.severity === filters.severity);
+      }
+      if (filters.escalation !== '') {
+        filteredTickets = filteredTickets.filter(t => t.escalation === parseInt(filters.escalation));
+      }
+      
+      // Check if no tickets match filters
+      if (filteredTickets.length === 0) {
+        ticketsBody.innerHTML = `
+          <tr><td colspan="9" class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-text">No tickets match your filters</div>
+            <div class="empty-state-subtext">Try adjusting or clearing the filters</div>
+          </td></tr>
+        `;
+        return;
+      }
+      
+      // Render filtered tickets
+      ticketsBody.innerHTML = "";
+      filteredTickets.forEach((ticket) => {
+          const tr = document.createElement("tr");
+          const createdAt = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : "-";
+          const statusClass = `status-${ticket.status.toLowerCase().replace(" ", "-")}`;
+          const severityClass = `severity-${ticket.severity.toLowerCase()}`;
+          const description = ticket.description || "-";
+          const truncatedDesc = description.length > 50 ? description.substring(0, 50) + "..." : description;
+          
+          tr.innerHTML = `
+            <td><span class="ticket-id">#${ticket.ticket_id}</span></td>
+            <td><span class="ticket-title">${ticket.title}</span></td>
+            <td style="max-width: 200px;" title="${description}">${truncatedDesc}</td>
+            <td><span class="badge ${statusClass}">${ticket.status}</span></td>
+            <td><span class="badge ${severityClass}">${ticket.severity}</span></td>
+            <td>${ticket.escalation}</td>
+            <td>${ticket.created_by || "-"}</td>
+            <td>${createdAt}</td>
+            <td><button class="action-btn" data-ticket-id="${ticket.ticket_id}">Edit</button></td>
+          `;
+          
+          // Make row clickable to open messages page
+          tr.style.cursor = "pointer";
+          tr.addEventListener('click', function(e) {
+            // Don't open messages if clicking the Edit button
+            if (!e.target.classList.contains('action-btn')) {
+              window.location.href = `/messages?ticket_id=${ticket.ticket_id}`;
+            }
+          });
+          
+          ticketsBody.appendChild(tr);
+        });
+        
+        // Attach click event listeners to all edit buttons
+        document.querySelectorAll('.action-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent row click from firing
+            const ticketId = parseInt(this.getAttribute('data-ticket-id'));
+            const ticket = allTickets.find(t => t.ticket_id === ticketId);
+            if (ticket) {
+              openEditModal(ticket);
+            }
+          });
+        });
+    }
+    
+    // Load all tickets from API
+    async function loadTickets() {
+      try {
+        const resp = await fetch("/tickets");
+        const data = await resp.json();
+        
+        if (!resp.ok) {
+          ticketsBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #d32f2f; padding: 40px;">Error loading tickets: ${data.error || resp.statusText}</td></tr>`;
+          return;
+        }
+        
+        if (data.length === 0) {
+          ticketsBody.innerHTML = `
+            <tr><td colspan="9" class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <div class="empty-state-text">No tickets yet</div>
+              <div class="empty-state-subtext">Click "Add Ticket" to create your first ticket</div>
+            </td></tr>
+          `;
+          return;
+        }
+        
+        // Store tickets globally
+        allTickets = data;
+        
+        // Render with current filters
+        renderTickets();
+      } catch (err) {
+        ticketsBody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #d32f2f; padding: 40px;">Failed to load tickets: ${err}</td></tr>`;
+      }
+    }
+
+    // Submit form for creating a new ticket
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      // Only handle create if the create button is visible
+      if (createBtn.style.display === "none") return;
+      
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const status = document.getElementById("status").value;
+      const severity = document.getElementById("severity").value;
+      const escalation = document.getElementById("escalation").value;
+      
+      alertEl.textContent = "Creating ticket...";
+      alertEl.className = "alert";
+
+      try {
+        const resp = await fetch("/tickets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, description, status, severity, escalation: parseInt(escalation) }),
+        });
+        const data = await resp.json();
+        
+        if (!resp.ok) {
+          alertEl.textContent = "Error: " + (data.error || resp.statusText);
+          alertEl.className = "alert error show";
+          return;
+        }
+        
+        alertEl.textContent = `✓ Ticket #${data.ticket_id} created successfully!`;
+        alertEl.className = "alert success show";
+        
+        // Reload tickets and close modal after delay
+        setTimeout(() => {
+          closeModal();
+          loadTickets();
+        }, 1500);
+      } catch (err) {
+        alertEl.textContent = "Request failed: " + err;
+        alertEl.className = "alert error show";
+      }
+    });
+
+    // Update an existing ticket
+    async function updateTicket() {
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const status = document.getElementById("status").value;
+      const severity = document.getElementById("severity").value;
+      const escalation = document.getElementById("escalation").value;
+      
+      alertEl.textContent = "Updating ticket...";
+      alertEl.className = "alert";
+
+      try {
+        const resp = await fetch(`/tickets/${currentTicketId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, description, status, severity, escalation: parseInt(escalation) }),
+        });
+        const data = await resp.json();
+        
+        if (!resp.ok) {
+          alertEl.textContent = "Error: " + (data.error || resp.statusText);
+          alertEl.className = "alert error show";
+          return;
+        }
+        
+        alertEl.textContent = `✓ Ticket #${data.ticket_id} updated successfully!`;
+        alertEl.className = "alert success show";
+        
+        // Reload tickets and close modal after delay
+        setTimeout(() => {
+          closeModal();
+          loadTickets();
+        }, 1500);
+      } catch (err) {
+        alertEl.textContent = "Request failed: " + err;
+        alertEl.className = "alert error show";
+      }
+    }
+
+    // Delete a ticket
+    async function deleteTicket() {
+      if (!confirm(`Are you sure you want to delete Ticket #${currentTicketId}? This action cannot be undone.`)) {
+        return;
+      }
+      
+      alertEl.textContent = "Deleting ticket...";
+      alertEl.className = "alert";
+
+      try {
+        const resp = await fetch(`/tickets/${currentTicketId}`, {
+          method: "DELETE",
+        });
+        const data = await resp.json();
+        
+        if (!resp.ok) {
+          alertEl.textContent = "Error: " + (data.error || resp.statusText);
+          alertEl.className = "alert error show";
+          return;
+        }
+        
+        alertEl.textContent = `✓ Ticket #${currentTicketId} deleted successfully!`;
+        alertEl.className = "alert success show";
+        
+        // Reload tickets and close modal after delay
+        setTimeout(() => {
+          closeModal();
+          loadTickets();
+        }, 1500);
+      } catch (err) {
+        alertEl.textContent = "Request failed: " + err;
+        alertEl.className = "alert error show";
+      }
+    }
+
+    // Load tickets on page load
+    loadTickets();
   </script>
 </body>
 </html>
